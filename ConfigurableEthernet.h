@@ -9,11 +9,11 @@
 #define EEPROM_Address_Subnet 18 //Subnet Mask 4 bytes (EEPROM Address 18-21)
 
 
-static const byte DefaultMAC[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-static const byte DefaultIP[] = {192, 168, 1, 177};
-static const byte DefaultDNS[] = {192, 168, 1, 1};
-static const byte DefaultGateway[] = {192, 168, 1, 1};
-static const byte DefaultSubnet[] = {255, 255, 255, 0};
+static const uint8_t DefaultMAC[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
+static const uint8_t DefaultIP[] = {192, 168, 2, 177};
+static const uint8_t DefaultDNS[] = {192, 168, 2, 1};
+static const uint8_t DefaultGateway[] = {192, 168, 2, 1};
+static const uint8_t DefaultSubnet[] = {255, 255, 255, 0};
 
 class MACAddress {
   public:
@@ -32,7 +32,7 @@ class MACAddress {
       _address.dword = address;
     }
     MACAddress(const uint8_t *address) {
-      memcpy(_address.bytes, address, sizeof(_address.bytes));
+      memcpy(_address.bytes, address, 6);
     }
 
     //    bool fromString(const char *address);
@@ -44,7 +44,7 @@ class MACAddress {
     String toString() const
     {
       char szRet[24];
-      sprintf(szRet, "%u.%u.%u.%u.%u.%u", _address.bytes[0], _address.bytes[1], _address.bytes[2], _address.bytes[3], _address.bytes[4], _address.bytes[5]);
+      sprintf(szRet, "%02X-%02X-%02X-%02X-%02X-%02X", _address.bytes[0], _address.bytes[1], _address.bytes[2], _address.bytes[3], _address.bytes[4], _address.bytes[5]);
       return String(szRet);
     }
 
@@ -63,8 +63,10 @@ class ConfigurableEthernet {
 
   public:
     ConfigurableEthernet();
+	
+	void begin(HardwareSerial &s);
 
-    void ResetEthernetDefaults();
+    void ResetEthernetDefaults(HardwareSerial &s);
 
     MACAddress GetMAC();
     IPAddress GetIPAddress();
@@ -73,17 +75,21 @@ class ConfigurableEthernet {
     IPAddress GetSubnetMask();
 
     MACAddress GetMACFromEEPROM();
-    IPAddress GetIPAddressFromEEPROM();
-    IPAddress GetDNSFromEEPROM();
-    IPAddress GetGatewayFromEEPROM();
-    IPAddress GetSubnetMaskFromEEPROM();
+    void GetIPAddressFromEEPROM(uint8_t*);
+    void GetDNSFromEEPROM(uint8_t*);
+    void GetGatewayFromEEPROM(uint8_t*);
+    void GetSubnetMaskFromEEPROM(uint8_t*);
 
     void SetMACAddress(MACAddress);
-    void SetIPAddress(IPAddress);
-    void SetDNS(IPAddress);
-    void SetGateway(IPAddress);
-    void SetSubnetMask(IPAddress);
+    void SetIPAddress(uint8_t*);
+    void SetDNS(uint8_t*);
+    void SetGateway(uint8_t*);
+    void SetSubnetMask(uint8_t*);
 
   private:
+	Print* serial;
+	void putByteArrayInEEPROM(int, uint8_t*, int);
+	void getByteArrayFromEEPROM(int, uint8_t*, int);
+	void printIPAddress(IPAddress);
 
 };
